@@ -1,6 +1,6 @@
 # Alfred
 
-**Agentic treasury manager for stablecoin on/off ramper provider**
+**Agentic treasury manager for stablecoin on/off ramper providers.**
 
 
 Built with the [Uniswap API](api.uniswap.org) and [Celo](celo.org) stablecoins for the synthesis hackathon.

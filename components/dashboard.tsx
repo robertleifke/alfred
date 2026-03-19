@@ -83,11 +83,10 @@ export function Dashboard({ initialRun, scenarioOptions }: DashboardProps) {
       <section className="hero">
         <div className="hero-copy">
           <p className="eyebrow">Agentic FX Treasury on Celo</p>
-          <h1>Alfred decides when to keep treasury in dollars and when to convert into payout currency.</h1>
+          <h1>Alfred decides when to keep treasury in dollar stablecoins and when to convert into local currency.</h1>
           <p className="lede">
-            This MVP shows Alfred as an autonomous treasury agent for USDT-funded lenders with KESm
-            obligations in Kenya. It tracks balances, evaluates upcoming payouts, applies treasury
-            policy, and executes or previews swaps through Uniswap on Celo.
+            Alfred is an agentic treasury manager for stablecoin on/off ramp providers. It tracks balances, evaluates upcoming payouts, applies treasury
+            policy, and executes swaps through Uniswap on Celo.
           </p>
         </div>
 
