@@ -5,7 +5,7 @@
 
 Built with the [Uniswap API](api.uniswap.org) and [Celo](celo.org) stablecoins for the synthesis hackathon.
 
-Alfred is an agent that enables off and on ramp providrs to manage their treasuries autonomously. It evaluates USDT and KESm balances and decides whether to buy KESm, and can execute a real `USDT -> KESm` swap through Uniswap on Celo.
+Alfred is an agent that enables off and on ramp providers to manage their treasuries autonomously. It evaluates USDT and local currency balances (e.g. KESm) and decides whether to buy or sell on Uniswap.
 
 ## What the MVP proves
 
@@ -35,13 +35,18 @@ The decision engine implements the policy described in the original concept:
 
 ## Demo scenarios
 
-The dashboard ships with three scenarios:
+1.  Urgent Payout
 
-1. `Tomorrow payout crunch`
-2. `Healthy runway`
-3. `Tight reserve`
+Flow: USDT → KESm
+Time-sensitive payout; Alfred routes and executes immediately.
 
-These demonstrate Alfred buying KESm for Kenya payouts, holding when runway is already healthy, and respecting reserve constraints when capital is tight.
+2. Prefunded Runway
+
+Flow: sufficient local currency liquidity; Alfred holds and avoids unnecessary FX.
+
+3. Reserve Constrained Execution
+
+Flow: local currency or dollar stablecoin liquidity is imabalanced; Alfred partially fills and preserves reserves.
 
 ## Project structure
 
