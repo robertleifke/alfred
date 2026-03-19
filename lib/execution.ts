@@ -9,20 +9,20 @@ import type { AlfredRun, ExecutionResult, Scenario, TreasuryBalances, TreasuryPo
 function buildUpdatedBalances(
   balances: TreasuryBalances,
   amountUsdt: number,
-  amountNgnm: number,
+  amountLocalAsset: number,
 ): TreasuryBalances {
   return {
     usdt: Math.round((balances.usdt - amountUsdt) * 100) / 100,
-    ngnm: Math.round((balances.ngnm + amountNgnm) * 100) / 100,
+    localAsset: Math.round((balances.localAsset + amountLocalAsset) * 100) / 100,
   };
 }
 
 function simulateExecution(
   scenario: Scenario,
   amountUsdt: number,
-  amountNgnm: number,
+  amountLocalAsset: number,
 ): ExecutionResult {
-  if (amountUsdt <= 0 || amountNgnm <= 0) {
+  if (amountUsdt <= 0 || amountLocalAsset <= 0) {
     return {
       mode: "simulation",
       status: "skipped",
@@ -37,7 +37,10 @@ function simulateExecution(
   }
 
   const firstRecipient = scenario.obligations[0]?.recipient ?? null;
-  const txHash = `0x${crypto.createHash("sha256").update(`${scenario.id}:${amountUsdt}:${amountNgnm}`).digest("hex")}`;
+  const txHash = `0x${crypto
+    .createHash("sha256")
+    .update(`${scenario.id}:${amountUsdt}:${amountLocalAsset}`)
+    .digest("hex")}`;
 
   return {
     mode: "simulation",
@@ -46,7 +49,7 @@ function simulateExecution(
     approvalTxHash: null,
     venue: scenario.quote.venue,
     settlementRecipient: firstRecipient,
-    summary: `Previewed swap of USDT ${amountUsdt} into KESm ${amountNgnm}. Execute live only after env and wallet are configured.`,
+    summary: `Previewed swap of USDT ${amountUsdt} into KESm ${amountLocalAsset}. Execute live only after env and wallet are configured.`,
     requestId: null,
     error: null,
   };
@@ -70,7 +73,7 @@ export async function planAlfredScenario(
       quote = liveQuote.quote;
       decision = {
         ...decision,
-        amountNgnm: Math.round(liveQuote.amountOutNgnm * 100) / 100,
+        amountLocalAsset: Math.round(liveQuote.amountOutLocalAsset * 100) / 100,
         rationale: [...decision.rationale, "Fetched a live Uniswap quote for the planned swap amount."],
       };
     } catch (error) {
@@ -86,10 +89,14 @@ export async function planAlfredScenario(
     }
   }
 
-  const execution = simulateExecution({ ...scenario, quote }, decision.amountUsdt, decision.amountNgnm);
+  const execution = simulateExecution(
+    { ...scenario, quote },
+    decision.amountUsdt,
+    decision.amountLocalAsset,
+  );
   const updatedBalances =
     execution.status === "preview" || execution.status === "executed"
-      ? buildUpdatedBalances(scenario.balances, decision.amountUsdt, decision.amountNgnm)
+      ? buildUpdatedBalances(scenario.balances, decision.amountUsdt, decision.amountLocalAsset)
       : scenario.balances;
 
   return {
@@ -135,7 +142,7 @@ export async function executeAlfredScenario(
       },
       decision: {
         ...plannedRun.decision,
-        amountNgnm: Math.round(liveQuote.amountOutNgnm * 100) / 100,
+        amountLocalAsset: Math.round(liveQuote.amountOutLocalAsset * 100) / 100,
         rationale: [...plannedRun.decision.rationale, "Live swap executed through the Uniswap API on Celo."],
       },
       execution: {
@@ -145,14 +152,14 @@ export async function executeAlfredScenario(
         approvalTxHash: approval.approvalTxHash,
         venue: liveQuote.quote.venue,
         settlementRecipient: scenario.obligations[0]?.recipient ?? null,
-        summary: `Executed live swap of USDT ${plannedRun.decision.amountUsdt} into KESm ${Math.round(liveQuote.amountOutNgnm * 100) / 100}.`,
+        summary: `Executed live swap of USDT ${plannedRun.decision.amountUsdt} into KESm ${Math.round(liveQuote.amountOutLocalAsset * 100) / 100}.`,
         requestId: swap.requestId ?? approval.requestId ?? liveQuote.quote.requestId ?? null,
         error: null,
       },
       updatedBalances: buildUpdatedBalances(
         plannedRun.scenario.balances,
         plannedRun.decision.amountUsdt,
-        Math.round(liveQuote.amountOutNgnm * 100) / 100,
+        Math.round(liveQuote.amountOutLocalAsset * 100) / 100,
       ),
     };
   } catch (error) {

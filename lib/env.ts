@@ -4,9 +4,9 @@ type AlfredExecutionConfig = {
   privateKey: `0x${string}`;
   walletAddress: `0x${string}`;
   usdtAddress: `0x${string}`;
-  ngnmAddress: `0x${string}`;
+  localAssetAddress: `0x${string}`;
   usdtDecimals: number;
-  ngnmDecimals: number;
+  localAssetDecimals: number;
 };
 
 function requireHexAddress(value: string | undefined): `0x${string}` | null {
@@ -36,9 +36,11 @@ export function getExecutionConfig(): AlfredExecutionConfig | null {
   const privateKey = requirePrivateKey(process.env.ALFRED_PRIVATE_KEY);
   const walletAddress = requireHexAddress(process.env.ALFRED_WALLET_ADDRESS);
   const usdtAddress = requireHexAddress(process.env.ALFRED_USDT_ADDRESS);
-  const ngnmAddress = requireHexAddress(process.env.ALFRED_NGNM_ADDRESS);
+  const localAssetAddress = requireHexAddress(
+    process.env.ALFRED_LOCAL_ASSET_ADDRESS ?? process.env.ALFRED_NGNM_ADDRESS,
+  );
 
-  if (!uniswapApiKey || !rpcUrl || !privateKey || !walletAddress || !usdtAddress || !ngnmAddress) {
+  if (!uniswapApiKey || !rpcUrl || !privateKey || !walletAddress || !usdtAddress || !localAssetAddress) {
     return null;
   }
 
@@ -48,9 +50,12 @@ export function getExecutionConfig(): AlfredExecutionConfig | null {
     privateKey,
     walletAddress,
     usdtAddress,
-    ngnmAddress,
+    localAssetAddress,
     usdtDecimals: parsePositiveInt(process.env.ALFRED_USDT_DECIMALS, 6),
-    ngnmDecimals: parsePositiveInt(process.env.ALFRED_NGNM_DECIMALS, 18),
+    localAssetDecimals: parsePositiveInt(
+      process.env.ALFRED_LOCAL_ASSET_DECIMALS ?? process.env.ALFRED_NGNM_DECIMALS,
+      18,
+    ),
   };
 }
 

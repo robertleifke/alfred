@@ -15,7 +15,7 @@ test("buys KESm when runway is below target", () => {
 
   assert.equal(decision.action, "BUY_NGNM");
   assert.ok(decision.amountUsdt > 0);
-  assert.ok(decision.amountNgnm > 0);
+  assert.ok(decision.amountLocalAsset > 0);
 });
 
 test("holds when current KESm already covers runway", () => {

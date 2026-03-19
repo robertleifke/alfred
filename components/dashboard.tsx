@@ -138,10 +138,10 @@ export function Dashboard({ initialRun, scenarioOptions }: DashboardProps) {
           <h2>Observe</h2>
           <div className="stats">
             <StatCard label="USDT balance" value={formatMoney(run.scenario.balances.usdt, "USDT")} />
-            <StatCard label="KESm balance" value={formatMoney(run.scenario.balances.ngnm, "KESm")} />
+            <StatCard label="KESm balance" value={formatMoney(run.scenario.balances.localAsset, "KESm")} />
             <StatCard
               label="Runway target"
-              value={formatMoney(run.decision.runwayTargetNgnm, "KESm")}
+              value={formatMoney(run.decision.runwayTargetLocalAsset, "KESm")}
               tone="accent"
             />
           </div>
@@ -152,7 +152,7 @@ export function Dashboard({ initialRun, scenarioOptions }: DashboardProps) {
                 <li key={obligation.id}>
                   <span>{obligation.label}</span>
                   <strong>
-                    {formatMoney(obligation.amountNgnm, "KESm")} due in {obligation.dueInDays} day
+                    {formatMoney(obligation.amountLocalAsset, "KESm")} due in {obligation.dueInDays} day
                     {obligation.dueInDays === 1 ? "" : "s"}
                   </strong>
                 </li>
@@ -171,7 +171,7 @@ export function Dashboard({ initialRun, scenarioOptions }: DashboardProps) {
             />
             <StatCard
               label="KESm acquired"
-              value={formatMoney(run.decision.amountNgnm, "KESm")}
+              value={formatMoney(run.decision.amountLocalAsset, "KESm")}
               tone={run.decision.action === "BUY_NGNM" ? "accent" : "default"}
             />
             <StatCard
@@ -184,7 +184,7 @@ export function Dashboard({ initialRun, scenarioOptions }: DashboardProps) {
             <h3>Policy checks</h3>
             <ul className="list rationale">
               <li>Runway: {run.policy.runwayDays} days</li>
-              <li>Max KESm exposure: {(run.policy.maxNgnmShareOfTreasury * 100).toFixed(0)}%</li>
+              <li>Max KESm exposure: {(run.policy.maxLocalAssetShareOfTreasury * 100).toFixed(0)}%</li>
               <li>Max slippage: {run.policy.maxSlippageBps} bps</li>
               <li>Min USDT reserve: {formatMoney(run.policy.minUsdtReserve, "USDT")}</li>
             </ul>
@@ -202,7 +202,7 @@ export function Dashboard({ initialRun, scenarioOptions }: DashboardProps) {
             <StatCard label="Venue" value={run.execution.venue} />
               <StatCard
                 label="Quote rate"
-              value={`1 USDT = ${formatMoney(run.scenario.quote.usdtToNgnmRate, "KESm")}`}
+              value={`1 USDT = ${formatMoney(run.scenario.quote.usdtToLocalAssetRate, "KESm")}`}
             />
             <StatCard label="Slippage" value={`${run.scenario.quote.slippageBps} bps`} />
           </div>
@@ -239,7 +239,7 @@ export function Dashboard({ initialRun, scenarioOptions }: DashboardProps) {
           {run.execution.error ? <p className="summary error-copy">{run.execution.error}</p> : null}
           <div className="stats">
             <StatCard label="USDT after run" value={formatMoney(run.updatedBalances.usdt, "USDT")} />
-            <StatCard label="KESm after run" value={formatMoney(run.updatedBalances.ngnm, "KESm")} />
+            <StatCard label="KESm after run" value={formatMoney(run.updatedBalances.localAsset, "KESm")} />
             <StatCard
               label="Reserve after run"
               value={formatMoney(run.decision.reserveAfterTradeUsdt, "USDT")}

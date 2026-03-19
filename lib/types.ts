@@ -1,26 +1,26 @@
 export type TreasuryPolicy = {
   runwayDays: number;
-  maxNgnmShareOfTreasury: number;
+  maxLocalAssetShareOfTreasury: number;
   maxSlippageBps: number;
   minUsdtReserve: number;
 };
 
 export type TreasuryBalances = {
   usdt: number;
-  ngnm: number;
+  localAsset: number;
 };
 
 export type Obligation = {
   id: string;
   label: string;
-  amountNgnm: number;
+  amountLocalAsset: number;
   dueInDays: number;
   recipient: string;
 };
 
 export type Quote = {
   pair: "USDT/KESm";
-  usdtToNgnmRate: number;
+  usdtToLocalAssetRate: number;
   slippageBps: number;
   priceImpactBps: number;
   venue: string;
@@ -33,8 +33,8 @@ export type DecisionAction = "HOLD" | "BUY_NGNM";
 export type Decision = {
   action: DecisionAction;
   amountUsdt: number;
-  amountNgnm: number;
-  runwayTargetNgnm: number;
+  amountLocalAsset: number;
+  runwayTargetLocalAsset: number;
   exposureAfterTrade: number;
   reserveAfterTradeUsdt: number;
   rationale: string[];

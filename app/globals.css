@@ -153,7 +153,8 @@ textarea {
   border: 1px solid var(--line);
 }
 
-.status-buy_ngnm {
+.status-buy_ngnm,
+.status-buy_local_asset {
   background: var(--accent-soft);
   color: var(--accent);
 }

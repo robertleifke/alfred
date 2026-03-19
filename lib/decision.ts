@@ -9,9 +9,9 @@ function obligationsWithinRunway(obligations: Obligation[], runwayDays: number) 
   return obligations.filter((obligation) => obligation.dueInDays <= runwayDays);
 }
 
-export function computeRunwayTargetNgnm(obligations: Obligation[], runwayDays: number) {
+export function computeRunwayTargetLocalAsset(obligations: Obligation[], runwayDays: number) {
   return obligationsWithinRunway(obligations, runwayDays).reduce(
-    (sum, obligation) => sum + obligation.amountNgnm,
+    (sum, obligation) => sum + obligation.amountLocalAsset,
     0,
   );
 }
@@ -28,61 +28,64 @@ export function decideTreasuryAction({
   policy?: TreasuryPolicy;
 }): Decision {
   const rationale: string[] = [];
-  const runwayTargetNgnm = computeRunwayTargetNgnm(obligations, policy.runwayDays);
-  const shortfallNgnm = Math.max(0, runwayTargetNgnm - balances.ngnm);
+  const runwayTargetLocalAsset = computeRunwayTargetLocalAsset(obligations, policy.runwayDays);
+  const shortfallLocalAsset = Math.max(0, runwayTargetLocalAsset - balances.localAsset);
 
-  rationale.push(`Runway target within ${policy.runwayDays} days is KESm ${roundCurrency(runwayTargetNgnm)}.`);
+  rationale.push(
+    `Runway target within ${policy.runwayDays} days is KESm ${roundCurrency(runwayTargetLocalAsset)}.`,
+  );
 
   if (quote.slippageBps > policy.maxSlippageBps) {
     rationale.push(
       `Quote rejected because slippage is ${quote.slippageBps} bps, above the ${policy.maxSlippageBps} bps limit.`,
     );
 
-    const ngnmValueInUsdt = balances.ngnm / quote.usdtToNgnmRate;
-    const exposureAfterTrade = ngnmValueInUsdt / (balances.usdt + ngnmValueInUsdt);
+    const localAssetValueInUsdt = balances.localAsset / quote.usdtToLocalAssetRate;
+    const exposureAfterTrade = localAssetValueInUsdt / (balances.usdt + localAssetValueInUsdt);
 
     return {
       action: "HOLD",
       amountUsdt: 0,
-      amountNgnm: 0,
-      runwayTargetNgnm: roundCurrency(runwayTargetNgnm),
+      amountLocalAsset: 0,
+      runwayTargetLocalAsset: roundCurrency(runwayTargetLocalAsset),
       exposureAfterTrade: roundCurrency(exposureAfterTrade),
       reserveAfterTradeUsdt: roundCurrency(balances.usdt),
       rationale,
     };
   }
 
-  if (shortfallNgnm <= 0) {
+  if (shortfallLocalAsset <= 0) {
     rationale.push("Current KESm balance already covers the target runway.");
-    const ngnmValueInUsdt = balances.ngnm / quote.usdtToNgnmRate;
-    const exposureAfterTrade = ngnmValueInUsdt / (balances.usdt + ngnmValueInUsdt);
+    const localAssetValueInUsdt = balances.localAsset / quote.usdtToLocalAssetRate;
+    const exposureAfterTrade = localAssetValueInUsdt / (balances.usdt + localAssetValueInUsdt);
 
     return {
       action: "HOLD",
       amountUsdt: 0,
-      amountNgnm: 0,
-      runwayTargetNgnm: roundCurrency(runwayTargetNgnm),
+      amountLocalAsset: 0,
+      runwayTargetLocalAsset: roundCurrency(runwayTargetLocalAsset),
       exposureAfterTrade: roundCurrency(exposureAfterTrade),
       reserveAfterTradeUsdt: roundCurrency(balances.usdt),
       rationale,
     };
   }
 
-  const shortfallUsdt = shortfallNgnm / quote.usdtToNgnmRate;
+  const shortfallUsdt = shortfallLocalAsset / quote.usdtToLocalAssetRate;
   const availableUsdt = Math.max(0, balances.usdt - policy.minUsdtReserve);
-  const maxNgnmFromReserveRule = availableUsdt * quote.usdtToNgnmRate;
-  const treasuryValueUsdt = balances.usdt + balances.ngnm / quote.usdtToNgnmRate;
-  const maxNgnmValueUsdt = treasuryValueUsdt * policy.maxNgnmShareOfTreasury;
-  const currentNgnmValueUsdt = balances.ngnm / quote.usdtToNgnmRate;
-  const maxAdditionalNgnmUsdt = Math.max(0, maxNgnmValueUsdt - currentNgnmValueUsdt);
-  const targetTradeUsdt = Math.min(shortfallUsdt, availableUsdt, maxAdditionalNgnmUsdt);
+  const treasuryValueUsdt = balances.usdt + balances.localAsset / quote.usdtToLocalAssetRate;
+  const maxLocalAssetValueUsdt = treasuryValueUsdt * policy.maxLocalAssetShareOfTreasury;
+  const currentLocalAssetValueUsdt = balances.localAsset / quote.usdtToLocalAssetRate;
+  const maxAdditionalLocalAssetUsdt = Math.max(0, maxLocalAssetValueUsdt - currentLocalAssetValueUsdt);
+  const targetTradeUsdt = Math.min(shortfallUsdt, availableUsdt, maxAdditionalLocalAssetUsdt);
   const amountUsdt = Math.max(0, targetTradeUsdt);
-  const amountNgnm = amountUsdt * quote.usdtToNgnmRate;
+  const amountLocalAsset = amountUsdt * quote.usdtToLocalAssetRate;
   const reserveAfterTradeUsdt = balances.usdt - amountUsdt;
-  const newNgnmValueUsdt = (balances.ngnm + amountNgnm) / quote.usdtToNgnmRate;
-  const exposureAfterTrade = newNgnmValueUsdt / (reserveAfterTradeUsdt + newNgnmValueUsdt);
+  const newLocalAssetValueUsdt =
+    (balances.localAsset + amountLocalAsset) / quote.usdtToLocalAssetRate;
+  const exposureAfterTrade =
+    newLocalAssetValueUsdt / (reserveAfterTradeUsdt + newLocalAssetValueUsdt);
 
-  rationale.push(`Current shortfall is KESm ${roundCurrency(shortfallNgnm)}.`);
+  rationale.push(`Current shortfall is KESm ${roundCurrency(shortfallLocalAsset)}.`);
 
   if (availableUsdt < shortfallUsdt) {
     rationale.push(
@@ -90,9 +93,12 @@ export function decideTreasuryAction({
     );
   }
 
-  if (maxAdditionalNgnmUsdt < shortfallUsdt && maxAdditionalNgnmUsdt <= availableUsdt) {
+  if (
+    maxAdditionalLocalAssetUsdt < shortfallUsdt &&
+    maxAdditionalLocalAssetUsdt <= availableUsdt
+  ) {
     rationale.push(
-      `KESm exposure cap limits this trade to USDT ${roundCurrency(maxAdditionalNgnmUsdt)} equivalent.`,
+      `KESm exposure cap limits this trade to USDT ${roundCurrency(maxAdditionalLocalAssetUsdt)} equivalent.`,
     );
   }
 
@@ -102,9 +108,9 @@ export function decideTreasuryAction({
     return {
       action: "HOLD",
       amountUsdt: 0,
-      amountNgnm: 0,
-      runwayTargetNgnm: roundCurrency(runwayTargetNgnm),
-      exposureAfterTrade: roundCurrency(currentNgnmValueUsdt / treasuryValueUsdt),
+      amountLocalAsset: 0,
+      runwayTargetLocalAsset: roundCurrency(runwayTargetLocalAsset),
+      exposureAfterTrade: roundCurrency(currentLocalAssetValueUsdt / treasuryValueUsdt),
       reserveAfterTradeUsdt: roundCurrency(balances.usdt),
       rationale,
     };
@@ -115,8 +121,8 @@ export function decideTreasuryAction({
   return {
     action: "BUY_NGNM",
     amountUsdt: roundCurrency(amountUsdt),
-    amountNgnm: roundCurrency(amountNgnm),
-    runwayTargetNgnm: roundCurrency(runwayTargetNgnm),
+    amountLocalAsset: roundCurrency(amountLocalAsset),
+    runwayTargetLocalAsset: roundCurrency(runwayTargetLocalAsset),
     exposureAfterTrade: roundCurrency(exposureAfterTrade),
     reserveAfterTradeUsdt: roundCurrency(reserveAfterTradeUsdt),
     rationale,

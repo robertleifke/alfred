@@ -1,8 +1,8 @@
 # Alfred
 
-**Autonomous FX treasury for USDT-funded lenders with KESm obligations**
+**Stablecoin treasury manager built with Uniswap API and Celo stablecoins.**
 
-Alfred is a submission-ready MVP for Synthesis. It models an AI treasury agent that watches USDT and KESm balances, evaluates upcoming Kenya obligations, decides whether to buy KESm, and can execute a real Uniswap swap on Celo when wallet and API credentials are configured.
+It models an AI treasury agent that watches USDT and KESm balances, evaluates upcoming Kenya obligations, decides whether to buy KESm, and can execute a real `USDT -> KESm` swap through Uniswap on Celo when wallet and API credentials are configured.
 
 ## What the MVP proves
 
@@ -11,6 +11,15 @@ Alfred is a submission-ready MVP for Synthesis. It models an AI treasury agent t
 - Alfred decides whether to hold USDT or buy KESm.
 - Alfred previews swaps safely by default and can execute them live through Uniswap on Celo when configured.
 - Alfred shows the entire loop in a minimal dashboard.
+
+## Current live pair
+
+The shipped live integration is configured for:
+
+- `USDT` on Celo: `0x48065fbBE25f71C9282ddf5e1cD6D6A887483D5e`
+- `KESm` on Celo: `0x456a3D042C0DbD3db53D5489e98dFb038553B0d0`
+- Chain: `Celo Mainnet`
+- Router / quote source: `Uniswap Trading API`
 
 ## Treasury policy
 
@@ -29,7 +38,7 @@ The dashboard ships with three scenarios:
 2. `Healthy runway`
 3. `Tight reserve`
 
-These demonstrate Alfred buying KESm, holding when runway is already healthy, and respecting reserve constraints when capital is tight.
+These demonstrate Alfred buying KESm for Kenya payouts, holding when runway is already healthy, and respecting reserve constraints when capital is tight.
 
 ## Project structure
 
@@ -59,7 +68,8 @@ Fill these values before live trading:
 - `ALFRED_PRIVATE_KEY`
 - `ALFRED_WALLET_ADDRESS`
 - `ALFRED_USDT_ADDRESS` defaults to Celo USDT `0x48065fbBE25f71C9282ddf5e1cD6D6A887483D5e`
-- `ALFRED_NGNM_ADDRESS` defaults to Celo KESm `0x456a3D042C0DbD3db53D5489e98dFb038553B0d0`
+- `ALFRED_LOCAL_ASSET_ADDRESS` defaults to Celo KESm `0x456a3D042C0DbD3db53D5489e98dFb038553B0d0`
+- `ALFRED_LOCAL_ASSET_DECIMALS` defaults to `18`
 
 Without them, Alfred stays in safe preview mode.
 
@@ -88,6 +98,12 @@ When the env vars are present, Alfred uses the official Uniswap trading API work
 5. Sign and send the approval and swap transactions through the configured wallet.
 
 The UI never executes a live trade automatically on page load. A real swap only happens after you click the explicit execute button.
+
+## Implementation notes
+
+- Internally, Alfred now models the payout currency as a generic `local asset` so the same engine can be reused for other regional stablecoins later.
+- The current demo labels that local asset as `KESm`.
+- The live path uses direct approval plus swap execution through Uniswap's Trading API. Permit2 signing is not required for the current demo path.
 
 ## What is still missing for a stronger final submission
 

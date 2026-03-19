@@ -104,18 +104,18 @@ function baseUnitsToDecimal(amount: string, decimals: number) {
 function toQuoteFromResponse(
   response: UniswapQuoteResponse,
   usdtDecimals: number,
-  ngnmDecimals: number,
+  localAssetDecimals: number,
 ): Quote {
   const outputAmount =
     response.quote.output?.amount ?? response.quote.aggregatedOutputs?.[0]?.amount ?? "0";
   const inputAmount = response.quote.input?.amount ?? "1";
   const inputDecimal = baseUnitsToDecimal(inputAmount, usdtDecimals);
-  const outputDecimal = baseUnitsToDecimal(outputAmount, ngnmDecimals);
-  const usdtToNgnmRate = inputDecimal > 0 ? outputDecimal / inputDecimal : 0;
+  const outputDecimal = baseUnitsToDecimal(outputAmount, localAssetDecimals);
+  const usdtToLocalAssetRate = inputDecimal > 0 ? outputDecimal / inputDecimal : 0;
 
   return {
     pair: "USDT/KESm",
-    usdtToNgnmRate,
+    usdtToLocalAssetRate,
     slippageBps: response.quote.slippageTolerance ?? response.quote.slippage ?? 0,
     priceImpactBps: Math.round((response.quote.priceImpact ?? 0) * 100),
     venue: response.routing ? `Uniswap ${response.routing} on Celo` : "Uniswap API on Celo",
@@ -154,7 +154,7 @@ export async function fetchLiveQuote(amountUsdt: number) {
     tokenInChainId: CELO_CHAIN_ID,
     tokenOutChainId: CELO_CHAIN_ID,
     tokenIn: config.usdtAddress,
-    tokenOut: config.ngnmAddress,
+    tokenOut: config.localAssetAddress,
     swapper: config.walletAddress,
     slippageTolerance: 40,
     routingPreference: "BEST_PRICE",
@@ -164,10 +164,10 @@ export async function fetchLiveQuote(amountUsdt: number) {
 
   return {
     raw: response,
-    quote: toQuoteFromResponse(response, config.usdtDecimals, config.ngnmDecimals),
-    amountOutNgnm: baseUnitsToDecimal(
+    quote: toQuoteFromResponse(response, config.usdtDecimals, config.localAssetDecimals),
+    amountOutLocalAsset: baseUnitsToDecimal(
       response.quote.output?.amount ?? response.quote.aggregatedOutputs?.[0]?.amount ?? "0",
-      config.ngnmDecimals,
+      config.localAssetDecimals,
     ),
   };
 }
@@ -230,7 +230,7 @@ export async function ensureApproval(amountUsdt: number) {
     chainId: CELO_CHAIN_ID,
     urgency: "urgent",
     includeGasInfo: true,
-    tokenOut: config.ngnmAddress,
+    tokenOut: config.localAssetAddress,
     tokenOutChainId: CELO_CHAIN_ID,
   });
 
