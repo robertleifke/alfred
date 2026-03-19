@@ -1,100 +1,106 @@
 # Alfred
 
-**FX Treasury Copilot**
+**Autonomous FX treasury for USDT-funded lenders with KESm obligations**
 
-Alfred is an AI agent that let's USDT funded lenders with NGNm cashflows manage their treasury. It monitors balances, forecasts obligations, and executes onchain FX conversions and settlements using the Uniswap API.
+Alfred is a submission-ready MVP for Synthesis. It models an AI treasury agent that watches USDT and KESm balances, evaluates upcoming Kenya obligations, decides whether to buy KESm, and can execute a real Uniswap swap on Celo when wallet and API credentials are configured.
 
-Built on Celo. Powered by Uniswap.
+## What the MVP proves
 
+- Alfred observes balances and upcoming obligations.
+- Alfred applies explicit treasury policy instead of vague agent intuition.
+- Alfred decides whether to hold USDT or buy KESm.
+- Alfred previews swaps safely by default and can execute them live through Uniswap on Celo when configured.
+- Alfred shows the entire loop in a minimal dashboard.
 
-## Problem
+## Treasury policy
 
-USDT funded businesses operating in markets like Nigeria face continuous FX risk:
+The decision engine implements the policy described in the original concept:
 
-- Revenue and funding in USDT
-- Cashflows in local currency NGNm
-- High volatility and frequent devaluation
-- Manual treasury operations → costly mistakes
+- Maintain `7` days of KESm runway
+- Never hold more than `20%` of treasury value in KESm
+- Reject trades above `40` bps slippage
+- Preserve a minimum `10 USDT` reserve
 
-Teams either:
-- Convert too early → hold depreciating NGNm
-- Convert too late → miss payments or face bad rates
+## Demo scenarios
 
+The dashboard ships with three scenarios:
 
-## Solution
+1. `Tomorrow payout crunch`
+2. `Healthy runway`
+3. `Tight reserve`
 
-Alfred automates FX treasury management:
+These demonstrate Alfred buying KESm, holding when runway is already healthy, and respecting reserve constraints when capital is tight.
 
-- Maintains optimal NGNm balances
-- Converts USDT → NGNm just-in-time
-- Minimizes exposure to devaluation
-- Executes real onchain swaps via Uniswap
-- Settles payments and logs all activity
+## Project structure
 
-## How It Works
+- `app/`: Next.js app router UI and API route
+- `components/`: dashboard UI
+- `lib/`: policy, scenarios, decision engine, Uniswap client, and execution flow
+- `test/`: node-based decision tests
 
-Alfred runs a continuous decision loop:
+## Local development
 
-1. **Observe**
-   - Reads USDT and NGNm balances
-   - Ingests upcoming NGN obligations (loans, payouts)
+Install dependencies:
 
-2. **Decide**
-   - Computes required NGN runway
-   - Determines whether to buy or sell NGNm
+```bash
+npm install
+```
 
-3. **Execute**
-   - Requests route via Uniswap API
-   - Approves tokens via Permit2
-   - Executes swap (USDT → NGNm)
-   - Sends NGNm to recipient wallet
+Create a local env file:
 
-4. **Verify**
-   - Confirms transaction
-   - Records tx hash, rates, balances
+```bash
+cp .env.example .env.local
+```
 
-## Example
+Fill these values before live trading:
 
-A lender has:
+- `ALFRED_UNISWAP_API_KEY`
+- `ALFRED_RPC_URL` defaults to Celo Forno `https://forno.celo.org`
+- `ALFRED_PRIVATE_KEY`
+- `ALFRED_WALLET_ADDRESS`
+- `ALFRED_USDT_ADDRESS` defaults to Celo USDT `0x48065fbBE25f71C9282ddf5e1cD6D6A887483D5e`
+- `ALFRED_NGNM_ADDRESS` defaults to Celo KESm `0x456a3D042C0DbD3db53D5489e98dFb038553B0d0`
 
-- $500,000 in USDT
-- ₦30,000,000 in loan disbursements due tomorrow
+Without them, Alfred stays in safe preview mode.
 
-Alfred:
-- Calculates NGN shortfall
-- Swaps USDT → NGNm via Uniswap
-- Sends NGNm to payout wallet
-- Avoids holding NGN early and reduces FX risk
+Start the app:
 
+```bash
+npm run dev
+```
 
-## Why Uniswap
+Run tests:
 
-Uniswap is the execution layer:
+```bash
+npm test
+```
 
-- Supports real transaction settlement
+Open `http://localhost:3000`.
 
-Alfred integrates:
-- Uniswap API (routing + execution)
-- Permit2 (token approvals)
+## Live execution flow
 
-All swaps produce real transaction hashes onchain.
+When the env vars are present, Alfred uses the official Uniswap trading API workflow:
 
-## Tech Stack
+1. Plan the treasury action locally.
+2. Fetch a live `/quote` from the Uniswap API on Celo.
+3. Check token approval with `/check_approval`.
+4. Build calldata with `/swap`.
+5. Sign and send the approval and swap transactions through the configured wallet.
 
-- **Chain:** Celo
-- **Base Asset:** USDT
-- **Local Asset:** NGNm
-- **Execution:** Uniswap API
-- **Approvals:** Permit2
-- **Frontend:** Next.js
-- **Backend Agent:** Node.js / TypeScript
-- **DB:** Supabase
+The UI never executes a live trade automatically on page load. A real swap only happens after you click the explicit execute button.
 
-## Demo
+## What is still missing for a stronger final submission
 
-- Maintain 7 days of NGN runway
-- Never hold more than 20% of treasury in NGN
-- Max slippage: 40 bps
-- Minimum USDT reserve: $10
+1. Persist run history and balances.
+2. Add a real payout transfer after the swap settles.
+3. Replace scenario balances with live onchain balance reads.
+4. Record human-agent collaboration logs for Synthesis.
+5. Optionally upgrade from direct approval flow to full Permit2 signing.
 
+## Submission framing
 
+Pitch Alfred as:
+
+> An autonomous FX treasury agent for stablecoin-funded lenders operating in volatile local-currency markets.
+
+That framing keeps the project inside the Synthesis theme of agents that pay while making the user value clear.
