@@ -83,11 +83,11 @@ export function Dashboard({ initialRun, scenarioOptions }: DashboardProps) {
       <section className="hero">
         <div className="hero-copy">
           <p className="eyebrow">Agentic FX Treasury on Celo</p>
-          <h1>Alfred decides when to hold dollars and when to buy runway.</h1>
+          <h1>Alfred decides when to keep treasury in dollars and when to convert into payout currency.</h1>
           <p className="lede">
-            This MVP models Alfred as a continuous treasury loop for USDT-funded lenders with KESm
-            obligations in Kenya. It observes balances, computes runway, applies treasury policy, and
-            simulates an execution through the Uniswap API on Celo.
+            This MVP shows Alfred as an autonomous treasury agent for USDT-funded lenders with KESm
+            obligations in Kenya. It tracks balances, evaluates upcoming payouts, applies treasury
+            policy, and executes or previews swaps through Uniswap on Celo.
           </p>
         </div>
 

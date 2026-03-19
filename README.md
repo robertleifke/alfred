@@ -1,8 +1,11 @@
 # Alfred
 
-**Stablecoin treasury manager built with Uniswap API and Celo stablecoins.**
+**Agentic treasury manager for stablecoin on/off ramper provider**
 
-It models an AI treasury agent that watches USDT and KESm balances, evaluates upcoming Kenya obligations, decides whether to buy KESm, and can execute a real `USDT -> KESm` swap through Uniswap on Celo when wallet and API credentials are configured.
+
+Built with the [Uniswap API](api.uniswap.org) and [Celo](celo.org) stablecoins for the synthesis hackathon.
+
+Alfred is an agent that enables off and on ramp providrs to manage their treasuries autonomously. It evaluates USDT and KESm balances and decides whether to buy KESm, and can execute a real `USDT -> KESm` swap through Uniswap on Celo.
 
 ## What the MVP proves
 
